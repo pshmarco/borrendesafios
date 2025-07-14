@@ -1,0 +1,292 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #eef2f7;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+
+.main-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Estilos para las Pestañas (ahora solo una funcional) --- */
+.tab-container {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e0e7ec;
+}
+
+.tab-button {
+    background-color: #f8fbfc;
+    border: none;
+    padding: 15px 25px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #555;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    transition: all 0.3s ease;
+    margin-right: 5px;
+    border: 1px solid transparent;
+    border-bottom: none;
+}
+
+.tab-button:hover {
+    background-color: #e0f7fa;
+    color: #2196f3;
+}
+
+.tab-button.active {
+    background-color: #ffffff;
+    color: #2196f3;
+    border-color: #2196f3;
+    border-bottom: 2px solid #ffffff; /* Para que la línea de abajo no se vea */
+    margin-bottom: -2px; /* Para que la línea de abajo se superponga */
+}
+
+.tab-content {
+    /* Como solo hay una pestaña, esto controlará el contenido principal */
+    display: none; /* Por defecto, todas las pestañas están ocultas */
+    padding: 20px 0;
+}
+
+.tab-content.active {
+    display: block; /* La pestaña activa se muestra */
+}
+
+/* --- Estilos de la Malla (existentes, con ligeros ajustes) --- */
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 40px;
+    font-size: 2.2em;
+}
+
+.semestre-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.semestre {
+    background-color: #f8fbfc;
+    border: 1px solid #e0e7ec;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.semestre h2 {
+    color: #34495e;
+    font-size: 1.6em;
+    margin-top: 0;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e0e7ec;
+    padding-bottom: 10px;
+}
+
+.ramos-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.ramo {
+    background-color: #e0f7fa; /* Color base para ramos no aprobados y disponibles */
+    padding: 12px 18px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95em;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #b2ebf2;
+}
+
+/* Estilo para ramos aprobados */
+.ramo.aprobado {
+    background-color: #a7d9b9; /* Verde suave */
+    text-decoration: line-through;
+    color: #555;
+    border-color: #8ac09c;
+    opacity: 0.9;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilo para ramos bloqueados (no se cumplen los prerrequisitos) */
+.ramo.bloqueado {
+    background-color: #eceff1; /* Gris claro */
+    color: #888;
+    cursor: not-allowed;
+    border-color: #cfd8dc;
+    opacity: 0.6;
+    pointer-events: none; /* Evita que se pueda hacer clic */
+}
+
+/* Opcional: estilo para hover en ramos no bloqueados */
+.ramo:not(.bloqueado):hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo para ramos que abren la modal de notas (visual para el usuario) */
+.ramo.open-grade-modal {
+    background-color: #ffd8b2; /* Naranja suave, para distinguirlos */
+    border-color: #ffad5d;
+}
+
+.ramo.open-grade-modal:not(.bloqueado):hover {
+    background-color: #ffc282; /* Naranja más fuerte al pasar el mouse */
+}
+
+
+.resumen-avance {
+    margin-top: 40px;
+    padding: 25px;
+    background-color: #e3f2fd;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: 600;
+    color: #2196f3;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* --- Estilos para la Modal de Calificaciones --- */
+.modal {
+    display: none; /* <--- CAMBIO CLAVE AQUÍ: Asegura que la modal está oculta por defecto */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto; /* Centered */
+    padding: 30px;
+    border: 1px solid #888;
+    width: 90%; /* Could be more responsive */
+    max-width: 600px; /* Max width */
+    border-radius: 10px;
+    position: relative;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    box-sizing: border-box;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-content h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+}
+
+.grade-inputs h3, .grade-results h3 {
+    color: #34495e;
+    border-bottom: 1px solid #e0e7ec;
+    padding-bottom: 10px;
+    margin-top: 25px;
+    margin-bottom: 15px;
+}
+
+.control-input {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.control-input label {
+    flex: 1;
+    font-weight: 500;
+}
+
+.control-input input,
+.wims-section input,
+.examen-section input {
+    flex: 2;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+    max-width: 120px; /* Control input width */
+}
+
+.wims-section, .examen-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    display: flex;
+    align-items: center;
+}
+
+.wims-section label, .examen-section label {
+    flex: 1;
+    font-weight: 500;
+}
+
+#calculateGrades {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    margin-top: 25px;
+    background-color: #2196f3; /* Azul */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#calculateGrades:hover {
+    background-color: #1976d2;
+}
+
+.grade-results p {
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+
+.grade-results p span {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.info-message {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 5px;
+}
