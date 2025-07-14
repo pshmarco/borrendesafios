@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Malla Curricular Interactiva</title>
-    <link rel="stylesheet" href="style.css">
+    <title>borren desafíos</title> <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="main-container">
@@ -21,8 +20,7 @@
                     <ul class="ramos-list">
                         <li class="ramo open-grade-modal" data-id="introduccion-calculo" data-prereq="" data-creditos="6" data-target-ramo="introduccion-calculo">Introducción al Cálculo</li>
                         <li class="ramo open-grade-modal" data-id="introduccion-algebra" data-prereq="" data-creditos="6" data-target-ramo="introduccion-algebra">Introducción al Álgebra</li>
-                        <li class="ramo" data-id="introduccion-fisica-clasica" data-prereq="" data-creditos="6">Introducción a la Física Clásica</li>
-                        <li class="ramo" data-id="herramientas-computacionales" data-prereq="" data-creditos="3">Herramientas Computacionales para la Ingeniería y Ciencias</li>
+                        <li class="ramo open-grade-modal" data-id="introduccion-fisica-clasica" data-prereq="" data-creditos="6" data-target-ramo="introduccion-fisica-clasica">Introducción a la Física Clásica</li> <li class="ramo" data-id="herramientas-computacionales" data-prereq="" data-creditos="3">Herramientas Computacionales para la Ingeniería y Ciencias</li>
                         <li class="ramo" data-id="aplicaciones-biologia" data-prereq="" data-creditos="3">Aplicaciones de la Biología a la Ingeniería y Ciencias</li>
                         <li class="ramo" data-id="desafios-innovacion" data-prereq="" data-creditos="6">Desafíos de Innovación en Ingeniería y Ciencias</li>
                     </ul>
@@ -59,7 +57,8 @@
                         <li class="ramo" data-id="electromagnetismo" data-prereq="calculo-varias-variables,ecuaciones-diferenciales-ordinarias,mecanica" data-creditos="6">Electromagnetismo</li>
                         <li class="ramo" data-id="modulo-interdisciplinario" data-prereq="metodos-experimentales,proyecto-innovacion" data-creditos="3">Módulo Interdisciplinario</li>
                         <li class="ramo" data-id="termodinamica" data-prereq="" data-creditos="6">Termodinámica</li>
-                        <li class="ramo" data-id="electivo-2" data-prereq="" data-creditos="3">Electivo</li> </ul>
+                        <li class="ramo" data-id="electivo-2" data-prereq="" data-creditos="3">Electivo</li>
+                    </ul>
                 </div>
             </div>
 
@@ -71,37 +70,35 @@
             </div>
         </div>
 
-        </div>
-
-    <div id="gradeModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2 id="modalRamoTitle"></h2>
-            <div class="grade-inputs">
-                <h3>Notas de Controles</h3>
-                <div id="controlsContainer">
+        <div id="gradeModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2 id="modalRamoTitle"></h2>
+                <div class="grade-inputs">
+                    <h3>Notas de Controles</h3>
+                    <div id="controlsContainer">
+                        </div>
+                    <div class="wims-section">
+                        <label for="wimsGrade">Nota WIMS:</label>
+                        <input type="number" id="wimsGrade" min="1.0" max="7.0" step="0.1">
                     </div>
-                <div class="wims-section">
-                    <label for="wimsGrade">Nota WIMS (puede dejar en blanco):</label>
-                    <input type="number" id="wimsGrade" min="1.0" max="7.0" step="0.1">
+                    <div class="examen-section">
+                        <label for="examenGrade">Nota Examen (opcional):</label>
+                        <input type="number" id="examenGrade" min="1.0" max="7.0" step="0.1">
+                    </div>
+                    <button id="calculateGrades">Calcular y Guardar</button>
                 </div>
-                <div class="examen-section">
-                    <label for="examenGrade">Nota Examen:</label>
-                    <input type="number" id="examenGrade" min="1.0" max="7.0" step="0.1">
+                <div class="grade-results">
+                    <h3>Resultados</h3>
+                    <p>Promedio Controles: <span id="avgControls">N/A</span></p>
+                    <p>Nota Final (sin WIMS): <span id="finalGradeNoWims">N/A</span></p>
+                    <p>Nota Final (con WIMS): <span id="finalGradeWims">N/A</span></p>
+                    <p>Estado del Ramo: <span id="ramoStatus">N/A</span></p>
+                    <p id="examenNeeded" class="info-message"></p>
+                    <p id="wimsInfo" class="info-message"></p>
                 </div>
-                <button id="calculateGrades">Calcular y Guardar</button>
-            </div>
-            <div class="grade-results">
-                <h3>Resultados</h3>
-                <p>Promedio Controles: <span id="avgControls">N/A</span></p>
-                <p>Nota Final (sin WIMS): <span id="finalGradeNoWims">N/A</span></p>
-                <p>Nota Final (con WIMS): <span id="finalGradeWims">N/A</span></p>
-                <p>Estado del Ramo: <span id="ramoStatus">N/A</span></p>
-                <p id="examenNeeded" class="info-message"></p>
-                <p id="wimsInfo" class="info-message"></p>
             </div>
         </div>
-    </div>
 
     <script src="script.js"></script>
 </body>
