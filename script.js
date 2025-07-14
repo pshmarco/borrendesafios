@@ -137,6 +137,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const examenNeededP = document.getElementById('examenNeeded');
     const wimsInfoP = document.getElementById('wimsInfo');
 
+        const isFisicaClasica = (ramoId === 'introduccion-fisica-clasica');
+        const finalGradeNoWimsContainer = finalGradeNoWimsSpan.parentElement; // El <p> que contiene el span
+        const finalGradeWimsContainer = finalGradeWimsSpan.parentElement;     // El <p> que contiene el span
+        
+        if (isFisicaClasica) {
+            finalGradeNoWimsContainer.style.display = 'none'; // Oculta el <p> de "Nota Final (sin WIMS)"
+            finalGradeWimsContainer.style.display = 'none';   // Oculta el <p> de "Nota Final (con WIMS)"
+        } else {
+            finalGradeNoWimsContainer.style.display = 'block'; // Asegura que se muestre para otros ramos
+            finalGradeWimsContainer.style.display = 'block';   // Asegura que se muestre para otros ramos
+        }
+    
     let currentRamoId = null; // Para saber qué ramo estamos editando
 
     // Objeto para almacenar la estructura de calificaciones de cada ramo
