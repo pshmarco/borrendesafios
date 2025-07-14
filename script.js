@@ -228,11 +228,16 @@ document.addEventListener('DOMContentLoaded', () => {
             controlsContainer.appendChild(controlDiv);
         });
 
-        // Ocultar/mostrar WIMS y Examen según el ramo
+// Ocultar/mostrar WIMS y Examen según el ramo
         const isFisicaClasica = (ramoId === 'introduccion-fisica-clasica');
-        wimsGradeInput.parentElement.style.display = 'block'; // WIMS visible por defecto
-        examenGradeInput.parentElement.style.display = 'block'; // Examen visible por defecto
+        const wimsSection = wimsGradeInput.parentElement; // Asegura que 'wimsSection' esté definido
 
+        if (isFisicaClasica) {
+            document.body.classList.add('hide-wims-for-fisica'); // Añade una clase al body
+        } else {
+            document.body.classList.remove('hide-wims-for-fisica'); // Remueve la clase
+        }
+        
         // Cargar nota WIMS si existe
         if (savedGrades.wims) {
             wimsGradeInput.value = savedGrades.wims;
