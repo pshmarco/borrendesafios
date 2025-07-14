@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Lógica de la Malla Curricular (existente) ---
+    // --- Lógica de la Malla Curricular ---
     const ramos = document.querySelectorAll('.ramo');
     const creditosAprobadosCountSpan = document.getElementById('creditosAprobadosCount');
     const totalCreditosSpan = document.getElementById('totalCreditos');
@@ -131,24 +131,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const calculateGradesButton = document.getElementById('calculateGrades');
 
     const avgControlsSpan = document.getElementById('avgControls');
+    const finalGradeNoWimsContainer = document.querySelector('#finalGradeNoWims').parentElement; // El <p> que contiene el span
+    const finalGradeWimsContainer = document.querySelector('#finalGradeWims').parentElement;     // El <p> que contiene el span
     const finalGradeNoWimsSpan = document.getElementById('finalGradeNoWims');
     const finalGradeWimsSpan = document.getElementById('finalGradeWims');
     const ramoStatusSpan = document.getElementById('ramoStatus');
     const examenNeededP = document.getElementById('examenNeeded');
     const wimsInfoP = document.getElementById('wimsInfo');
 
-        const isFisicaClasica = (ramoId === 'introduccion-fisica-clasica');
-        const finalGradeNoWimsContainer = finalGradeNoWimsSpan.parentElement; // El <p> que contiene el span
-        const finalGradeWimsContainer = finalGradeWimsSpan.parentElement;     // El <p> que contiene el span
-        
-        if (isFisicaClasica) {
-            finalGradeNoWimsContainer.style.display = 'none'; // Oculta el <p> de "Nota Final (sin WIMS)"
-            finalGradeWimsContainer.style.display = 'none';   // Oculta el <p> de "Nota Final (con WIMS)"
-        } else {
-            finalGradeNoWimsContainer.style.display = 'block'; // Asegura que se muestre para otros ramos
-            finalGradeWimsContainer.style.display = 'block';   // Asegura que se muestre para otros ramos
-        }
-    
     let currentRamoId = null; // Para saber qué ramo estamos editando
 
     // Objeto para almacenar la estructura de calificaciones de cada ramo
@@ -194,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             examenWeight: 0.40,
             controlsWeight: 0.60, // Ponderación de (Controles + Ejercicios)
-            wimsWeight: 0.10 // Aunque WIMS no se usa aquí, lo mantengo para consistencia, si se requiere en el futuro
+            // wimsWeight: 0.10 // Esto puede eliminarse, ya no se usa
         }
     };
 
@@ -240,23 +230,32 @@ document.addEventListener('DOMContentLoaded', () => {
             controlsContainer.appendChild(controlDiv);
         });
 
-// Ocultar/mostrar WIMS y Examen según el ramo
+        // Lógica para ocultar/mostrar WIMS visualmente
         const isFisicaClasica = (ramoId === 'introduccion-fisica-clasica');
-        const wimsSection = wimsGradeInput.parentElement; // Asegura que 'wimsSection' esté definido
-
+        const wimsSection = wimsGradeInput.parentElement;
+        
         if (isFisicaClasica) {
-            document.body.classList.add('hide-wims-for-fisica'); // Añade una clase al body
+            wimsSection.style.display = 'none'; // Oculta la sección de WIMS
+            wimsGradeInput.value = ''; // Limpia el valor por si acaso
         } else {
-            document.body.classList.remove('hide-wims-for-fisica'); // Remueve la clase
+            wimsSection.style.display = 'block'; // Asegura que se muestra para otros ramos
+            if (savedGrades.wims) {
+                wimsGradeInput.value = savedGrades.wims;
+            } else {
+                wimsGradeInput.value = '';
+            }
         }
         
-        // Cargar nota WIMS si existe
-        if (savedGrades.wims) {
-            wimsGradeInput.value = savedGrades.wims;
+        // Lógica para ocultar/mostrar los resultados de "Nota Final (sin WIMS)" y "Nota Final (con WIMS)"
+        if (isFisicaClasica) {
+            finalGradeNoWimsContainer.style.display = 'none'; // Oculta el <p> de "Nota Final (sin WIMS)"
+            finalGradeWimsContainer.style.display = 'none';   // Oculta el <p> de "Nota Final (con WIMS)"
         } else {
-            wimsGradeInput.value = '';
+            finalGradeNoWimsContainer.style.display = 'block'; // Asegura que se muestre para otros ramos
+            finalGradeWimsContainer.style.display = 'block';   // Asegura que se muestre para otros ramos
         }
-        
+
+
         // Cargar nota Examen si existe
         if (savedGrades.examen) {
             examenGradeInput.value = savedGrades.examen;
@@ -329,11 +328,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const wimsGrade = parseFloat(wimsGradeInput.value);
-        if (!isNaN(wimsGrade) && wimsGrade >= 1.0 && wimsGrade <= 7.0) {
-            grades.wims = wimsGrade;
+        // Solo obtener y guardar WIMS si el ramo no es Física Clásica
+        let wimsGrade = NaN; // Inicializar wimsGrade como NaN por defecto
+        if (currentRamoId !== 'introduccion-fisica-clasica') {
+            wimsGrade = parseFloat(wimsGradeInput.value);
+            if (!isNaN(wimsGrade) && wimsGrade >= 1.0 && wimsGrade <= 7.0) {
+                grades.wims = wimsGrade;
+            } else {
+                grades.wims = '';
+            }
         } else {
-            grades.wims = '';
+            grades.wims = ''; // Asegura que no se guarde WIMS para Física Clásica
         }
 
         const examenGrade = parseFloat(examenGradeInput.value);
@@ -407,7 +412,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Aplicar lógica WIMS solo si el ramo no es "Introducción a la Física Clásica"
-        // y si el WIMS tiene nota y el ramo (sin WIMS) ya tiene una nota final válida
         let finalGradeWithWims = finalGrade;
         if (currentRamoId !== 'introduccion-fisica-clasica' && finalGrade !== null && !isNaN(wimsGrade) && wimsGrade >= ramoConfig.minApproval && finalGrade >= ramoConfig.minApproval) {
             // Si el ramo y WIMS están aprobados
@@ -422,6 +426,11 @@ document.addEventListener('DOMContentLoaded', () => {
              } else if (wimsGrade >= ramoConfig.minApproval && finalGrade < ramoConfig.minApproval) {
                  wimsInfoP.textContent = `WIMS no aplica porque el ramo no está aprobado sin él (requiere ${ramoConfig.minApproval.toFixed(1)}).`;
              }
+        } else if (currentRamoId === 'introduccion-fisica-clasica' && !isNaN(wimsGrade) && wimsGrade !== '') {
+            // Mensaje específico para Física Clásica si se ingresó un WIMS
+            wimsInfoP.textContent = 'WIMS no aplica para este ramo.';
+        } else {
+            wimsInfoP.textContent = ''; // Limpia el mensaje si no hay WIMS o no aplica
         }
 
         finalGradeNoWimsSpan.textContent = finalGrade !== null ? finalGrade.toFixed(1) : 'N/A';
