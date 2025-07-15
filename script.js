@@ -78,10 +78,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateTacharModeButton() {
         if (tacharModeActive) {
-            toggleTacharModeButton.textContent = 'Desactivar Modo Tachar Ramos';
+            toggleTacharModeButton.textContent = 'Desactivar Modo Edición';
             toggleTacharModeButton.classList.add('active-mode');
         } else {
-            toggleTacharModeButton.textContent = 'Activar Modo Tachar Ramos';
+            toggleTacharModeButton.textContent = 'Activar Modo Edición';
             toggleTacharModeButton.classList.remove('active-mode');
         }
     }
@@ -100,6 +100,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleTacharModeClick(ramoId) {
         const ramoElement = document.querySelector(`[data-id="${ramoId}"]`);
         if (!ramoElement) return;
+
+        // Si el ramo está bloqueado por prerrequisitos, no se puede hacer clic en modo "tachar"
+        if (ramoElement.classList.contains('bloqueado')) {
+            alert(`No puedes modificar "${ramoElement.textContent}" aún. Faltan prerrequisitos.`);
+            return;
+        }
 
         if (ramoElement.classList.contains('aprobado')) {
             // Lógica para desaprobar (considerando prerrequisitos de otros ramos)
@@ -123,13 +129,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('savedRamoGrades', JSON.stringify(savedRamoGrades));
                 }
             }
-        } else if (!ramoElement.classList.contains('bloqueado')) {
+        } else {
             // Lógica para aprobar
             approvedRamos.add(ramoId);
             // No se guardan notas ficticias, solo el estado de aprobado en este modo.
-        } else {
-            alert(`No puedes tachar "${ramoElement.textContent}" aún. Faltan prerrequisitos.`);
-            return;
         }
 
         saveRamosState();
@@ -142,19 +145,22 @@ document.addEventListener('DOMContentLoaded', () => {
             event.stopPropagation(); // Evitar que el click se propague a otros listeners del ramo
             const ramoId = ramo.dataset.id;
 
+            // Primero, verifica si el ramo está bloqueado. Si lo está, no hace nada.
+            if (ramo.classList.contains('bloqueado')) {
+                // El CSS ya usa pointer-events: none; pero esto es una doble verificación.
+                // alert(`No puedes interactuar con "${ramo.textContent}" aún. Faltan prerrequisitos.`);
+                return;
+            }
+
             if (tacharModeActive) {
-                // En modo tachar, todos los ramos son "tachables" (si sus prerrequisitos lo permiten)
+                // En modo edición, todos los ramos son "tachables" (si sus prerrequisitos lo permiten)
                 handleTacharModeClick(ramoId);
             } else {
-                // En modo normal, solo los ramos con la clase 'open-grade-modal' abren la modal
-                // Los otros ramos funcionan como antes (clic para aprobar/desaprobar sin modal)
+                // En modo normal (notas), solo los ramos con la clase 'open-grade-modal' abren la modal.
+                // Los ramos sin 'open-grade-modal' se gestionan con clic directo (tachar/destachar).
                 if (ramo.classList.contains('open-grade-modal')) {
-                    // Solo abre la modal si no está bloqueado por prerrequisitos
-                    if (!ramo.classList.contains('bloqueado')) {
-                        openGradeModal(ramoId);
-                    }
+                    openGradeModal(ramoId);
                 } else {
-                    // Para ramos que no tienen modal, siguen funcionando el click directo en modo normal
                     handleTacharModeClick(ramoId); // Reutiliza la misma lógica de toggle
                 }
             }
@@ -164,19 +170,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateRamosDisplay(); // Cargar el estado inicial de la malla
 
 
-    // --- Lógica de Pestañas (SIMPLIFICADA: solo una pestaña 'Malla Curricular') ---
-    const mallaTabContent = document.getElementById('malla');
-    const mallaTabButton = document.querySelector('.tab-button[data-tab="malla"]');
-
-    if (mallaTabContent && mallaTabButton) {
-        mallaTabContent.classList.add('active');
-        mallaTabButton.classList.add('active');
-    }
-    
     // --- Lógica de Modal de Calificaciones ---
     const gradeModal = document.getElementById('gradeModal');
     const closeModalButton = document.querySelector('.close-button');
-    // openGradeModalRamos ya no se usa directamente en el forEach, ahora el listener está en 'ramos' general
 
     const modalRamoTitle = document.getElementById('modalRamoTitle');
     const controlsContainer = document.getElementById('controlsContainer');
@@ -205,8 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Objeto para almacenar la estructura de calificaciones de cada ramo
     const ramoGradeConfigs = {
         'introduccion-calculo': {
-            minApproval: 3.95, // Ajustado a >= 3.95
-            minEximicion: 5.45, // Ajustado a >= 5.45
+            minApproval: 3.95,
+            minEximicion: 5.45,
             evaluations: [
                 { name: 'Control 1', type: 'control' },
                 { name: 'Control 2', type: 'control' },
@@ -220,8 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
             wimsWeight: 0.10
         },
         'introduccion-algebra': {
-            minApproval: 3.95, // Ajustado a >= 3.95
-            minEximicion: 5.45, // Ajustado a >= 5.45
+            minApproval: 3.95,
+            minEximicion: 5.45,
             evaluations: [
                 { name: 'Control 1', type: 'control' },
                 { name: 'Control 2', type: 'control' },
@@ -234,19 +230,18 @@ document.addEventListener('DOMContentLoaded', () => {
             controlsWeight: 0.60,
             wimsWeight: 0.10
         },
-        'introduccion-fisica-clasica': { // Configuración para Física Clásica (3 controles, 1 ejercicios)
-            minApproval: 3.95, // >= 3.95 para aprobar
-            minEximicion: 5.45, // >= 5.45 para eximir
+        'introduccion-fisica-clasica': {
+            minApproval: 3.95,
+            minEximicion: 5.45,
             evaluations: [
                 { name: 'Control 1', type: 'control' },
                 { name: 'Control 2', type: 'control' },
                 { name: 'Control 3', type: 'control' },
-                { name: 'Ejercicios', type: 'ejercicios' } // Promedio de ejercicios
+                { name: 'Ejercicios', type: 'ejercicios' }
             ],
             examenWeight: 0.40,
-            controlsWeight: 0.60, // Ponderación de (Controles + Ejercicios)
+            controlsWeight: 0.60,
         },
-        // --- Ramos con 3 Controles y Examen (sin WIMS) ---
         'algebra-lineal': {
             minApproval: 3.95, minEximicion: 5.45,
             evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
@@ -338,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wimsGradeInput.value = '';
         examenGradeInput.value = '';
         avgControlsSpan.textContent = 'N/A';
-        finalGradeDisplaySpan.textContent = 'N/A'; // Limpiar el nuevo span
+        finalGradeDisplaySpan.textContent = 'N/A';
         finalGradeNoWimsSpan.textContent = 'N/A';
         finalGradeWimsSpan.textContent = 'N/A';
         ramoStatusSpan.textContent = 'N/A';
@@ -363,12 +358,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Lógica para ocultar/mostrar WIMS visualmente
-        const hasWims = ramoConfig.hasOwnProperty('wimsWeight'); // Determina si el ramo tiene WIMS
+        const hasWims = ramoConfig.hasOwnProperty('wimsWeight');
         const wimsSection = wimsGradeInput.parentElement;
         
-        if (!hasWims) { // Si el ramo NO tiene WIMS
-            wimsSection.style.display = 'none'; // Oculta la sección de WIMS
-            wimsGradeInput.value = ''; // Limpia el valor por si acaso
+        if (!hasWims) {
+            wimsSection.style.display = 'none';
+            wimsGradeInput.value = '';
         } else {
             wimsSection.style.display = 'flex'; // Asegura que se muestra con flex para alinear
             if (savedGrades.wims) {
@@ -379,12 +374,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Lógica para ocultar/mostrar los resultados de notas finales
-        if (!hasWims) { // Si el ramo NO tiene WIMS, mostrar solo la nota final genérica
+        if (!hasWims) {
             finalGradeCombinedContainer.style.display = 'block';
             finalGradeNoWimsContainer.style.display = 'none';
             finalGradeWimsContainer.style.display = 'none';
-        } else { // Si el ramo SÍ tiene WIMS, mostrar las dos versiones de nota final
-            finalGradeCombinedContainer.style.display = 'none'; // Ocultar la genérica
+        } else {
+            finalGradeCombinedContainer.style.display = 'none';
             finalGradeNoWimsContainer.style.display = 'block';
             finalGradeWimsContainer.style.display = 'block';
         }
@@ -450,7 +445,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Solo obtener y guardar WIMS si el ramo tiene wimsWeight en su configuración
         let wimsGrade = NaN;
         if (ramoConfig.hasOwnProperty('wimsWeight')) {
             wimsGrade = parseFloat(wimsGradeInput.value);
@@ -460,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 grades.wims = '';
             }
         } else {
-            grades.wims = ''; // Asegura que no se guarde WIMS para ramos sin él
+            grades.wims = '';
         }
 
         const examenGrade = parseFloat(examenGradeInput.value);
@@ -470,7 +464,6 @@ document.addEventListener('DOMContentLoaded', () => {
             grades.examen = '';
         }
 
-        // --- Calcular promedio de evaluaciones según el ramo ---
         let expectedControls = 0;
         let expectedEjercicios = 0;
 
@@ -482,14 +475,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Lógica para ramos con ejercicios (e.g., Física Clásica)
         if (expectedEjercicios > 0) {
             if (validControlsCount === expectedControls && validEjerciciosCount === expectedEjercicios) {
                 averageForEximicion = roundToNearestDecimal((sumControls + sumEjercicios) / (expectedControls + expectedEjercicios));
             } else {
                 averageForEximicion = null;
             }
-        } else { // Lógica para ramos con solo controles (3 o 6 controles)
+        } else {
             if (validControlsCount === expectedControls) {
                 averageForEximicion = roundToNearestDecimal(sumControls / validControlsCount);
             } else {
@@ -498,12 +490,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         avgControlsSpan.textContent = averageForEximicion !== null ? averageForEximicion.toFixed(1) : 'N/A';
 
-
-        // --- Lógica de Cálculo Principal ---
         let finalGrade = null;
         let status = 'Pendiente';
-        examenNeededP.textContent = ''; // Limpiar mensaje previo
-        wimsInfoP.textContent = ''; // Limpiar mensaje previo
+        examenNeededP.textContent = '';
+        wimsInfoP.textContent = '';
 
         const expectedEvaluationsCount = ramoConfig.evaluations.length;
 
@@ -538,7 +528,6 @@ document.addEventListener('DOMContentLoaded', () => {
              examenNeededP.textContent = `Faltan ${expectedEvaluationsCount - validEvaluationCount} evaluaciones para calcular promedio y estado final.`;
         }
 
-        // Aplicar lógica WIMS solo si el ramo tiene wimsWeight
         let finalGradeWithWims = finalGrade;
         if (ramoConfig.hasOwnProperty('wimsWeight') && finalGrade !== null && !isNaN(wimsGrade) && wimsGrade >= ramoConfig.minApproval && finalGrade >= ramoConfig.minApproval) {
             const ponderadoWims = roundToNearestDecimal((finalGrade * (1 - ramoConfig.wimsWeight)) + (wimsGrade * ramoConfig.wimsWeight));
@@ -553,23 +542,20 @@ document.addEventListener('DOMContentLoaded', () => {
                  wimsInfoP.textContent = `WIMS no aplica porque el ramo no está aprobado sin él (requiere ${ramoConfig.minApproval.toFixed(1)}).`;
              }
         } else if (!ramoConfig.hasOwnProperty('wimsWeight') && !isNaN(wimsGrade) && wimsGrade !== '') {
-            // Mensaje específico para ramos sin WIMS si se ingresó un WIMS (aunque el input esté oculto)
             wimsInfoP.textContent = 'WIMS no aplica para este ramo.';
         } else {
-            wimsInfoP.textContent = ''; // Limpia el mensaje si no hay WIMS o no aplica
+            wimsInfoP.textContent = '';
         }
 
-        // Asignar los valores a los spans de resultados
-        if (!ramoConfig.hasOwnProperty('wimsWeight')) { // Si el ramo NO tiene WIMS
+        if (!ramoConfig.hasOwnProperty('wimsWeight')) {
             finalGradeDisplaySpan.textContent = finalGrade !== null ? finalGrade.toFixed(1) : 'N/A';
-        } else { // Si el ramo SÍ tiene WIMS
-            finalGradeDisplaySpan.textContent = 'N/A'; // Oculta esta línea cuando se usa WIMS
+        } else {
+            finalGradeDisplaySpan.textContent = 'N/A';
             finalGradeNoWimsSpan.textContent = finalGrade !== null ? finalGrade.toFixed(1) : 'N/A';
             finalGradeWimsSpan.textContent = finalGradeWithWims !== null && finalGradeWithWims !== finalGrade ? finalGradeWithWims.toFixed(1) : (finalGrade !== null ? finalGrade.toFixed(1) : 'N/A');
         }
 
 
-        // Actualizar estado final basado en la nota final (posiblemente con WIMS)
         if (finalGradeWithWims !== null) {
             if (finalGradeWithWims >= ramoConfig.minApproval) {
                 status = 'Aprobado';
@@ -590,11 +576,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         ramoStatusSpan.textContent = status;
 
-        // --- Guardar notas para el ramo actual ---
         savedRamoGrades[currentRamoId] = grades;
         localStorage.setItem('savedRamoGrades', JSON.stringify(savedRamoGrades));
 
-        // Marcar el ramo como aprobado en la malla si la nota final es >= nota de aprobación
         if (finalGradeWithWims !== null && finalGradeWithWims >= ramoConfig.minApproval) {
             approvedRamos.add(currentRamoId);
             document.querySelector(`[data-id="${currentRamoId}"]`).classList.add('aprobado');
@@ -602,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
             approvedRamos.delete(currentRamoId);
             document.querySelector(`[data-id="${currentRamoId}"]`).classList.remove('aprobado');
         }
-        saveRamosState(); // Guarda el estado de aprobación de la malla
-        updateRamosDisplay(); // Actualiza los contadores y prerrequisitos
+        saveRamosState();
+        updateRamosDisplay();
     }
 });
