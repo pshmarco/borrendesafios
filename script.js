@@ -72,39 +72,78 @@ document.addEventListener('DOMContentLoaded', () => {
         porcentajeAvanceSpan.textContent = porcentaje;
     }
 
-    // Listener para los ramos (los que NO abren la modal)
-    ramos.forEach(ramo => {
-        if (!ramo.classList.contains('open-grade-modal')) { // Solo ramos que no abren modal
-            ramo.addEventListener('click', () => {
-                const ramoId = ramo.dataset.id;
-                
-                if (ramo.classList.contains('aprobado')) {
-                    let canUnapprove = true;
-                    approvedRamos.forEach(approvedRamoId => {
-                        if (ramoId !== approvedRamoId) {
-                            const approvedRamoElement = document.querySelector(`[data-id="${approvedRamoId}"]`);
-                            if (approvedRamoElement && getPrerequisites(approvedRamoElement).includes(ramoId)) {
-                                canUnapprove = false;
-                                alert(`No puedes desaprobar "${ramo.textContent}" porque es prerrequisito de un ramo que ya tienes aprobado.`);
-                                return;
-                            }
-                        }
-                    });
+    // --- Lógica del Botón de Modo Tachar ---
+    const toggleTacharModeButton = document.getElementById('toggleTacharMode');
+    let tacharModeActive = false; // Estado inicial: modo de notas
 
-                    if (canUnapprove) {
-                        approvedRamos.delete(ramoId);
+    function toggleRamoApproval(ramoId) {
+        const ramoElement = document.querySelector(`[data-id="${ramoId}"]`);
+        if (!ramoElement) return;
+
+        if (approvedRamos.has(ramoId)) {
+            // Intentar desaprobar: verificar si es prerrequisito de un ramo aprobado
+            let canUnapprove = true;
+            approvedRamos.forEach(approvedRamoId => {
+                if (ramoId !== approvedRamoId) { // No verificar contra sí mismo
+                    const approvedRamoElement = document.querySelector(`[data-id="${approvedRamoId}"]`);
+                    if (approvedRamoElement && getPrerequisites(approvedRamoElement).includes(ramoId)) {
+                        canUnapprove = false;
+                        alert(`No puedes desaprobar "${ramoElement.textContent}" porque es prerrequisito de un ramo que ya tienes aprobado.`);
+                        return;
                     }
-                } else if (!ramo.classList.contains('bloqueado')) {
-                    approvedRamos.add(ramoId);
-                } else {
-                    console.log(`No puedes tomar ${ramo.textContent} aún. Faltan prerrequisitos.`);
-                    return;
                 }
-
-                saveRamosState();
-                updateRamosDisplay();
             });
+
+            if (canUnapprove) {
+                approvedRamos.delete(ramoId);
+                // Si se desaprueba, también eliminar sus notas guardadas
+                if (savedRamoGrades[ramoId]) {
+                    delete savedRamoGrades[ramoId];
+                    localStorage.setItem('savedRamoGrades', JSON.stringify(savedRamoGrades));
+                }
+            }
+        } else if (!ramoElement.classList.contains('bloqueado')) {
+            // Aprobar si no está bloqueado por prerrequisitos
+            approvedRamos.add(ramoId);
+        } else {
+            alert(`No puedes tachar "${ramoElement.textContent}" aún. Faltan prerrequisitos.`);
+            return; // No hacer nada si está bloqueado
         }
+        saveRamosState();
+        updateRamosDisplay();
+    }
+
+    toggleTacharModeButton.addEventListener('click', () => {
+        tacharModeActive = !tacharModeActive;
+        toggleTacharModeButton.textContent = `Modo Tachar: ${tacharModeActive ? 'Activado' : 'Desactivado'}`;
+        
+        // Cierra la modal si está abierta al cambiar de modo
+        if (gradeModal.style.display === 'flex') {
+            gradeModal.style.display = 'none';
+            currentRamoId = null;
+        }
+        // Opcional: Podrías añadir alguna indicación visual en los ramos si el modo está activo
+        // Por ejemplo, cambiar el cursor o añadir una clase CSS a todos los ramos.
+    });
+
+    // Un solo listener para todos los ramos para manejar ambos modos
+    ramos.forEach(ramo => {
+        ramo.addEventListener('click', (event) => {
+            event.stopPropagation(); // Evitar que el click se propague
+            const ramoId = ramo.dataset.id;
+
+            if (tacharModeActive) {
+                toggleRamoApproval(ramoId);
+            } else {
+                // Solo los ramos designados con 'open-grade-modal' abren la modal en modo normal
+                if (ramo.classList.contains('open-grade-modal') && !ramo.classList.contains('bloqueado')) {
+                    openGradeModal(ramoId);
+                } else if (ramo.classList.contains('bloqueado')) {
+                    alert(`No puedes ingresar notas para "${ramo.textContent}" aún. Faltan prerrequisitos.`);
+                }
+                // Si no es open-grade-modal y no es modo tachar, simplemente no hace nada al hacer clic
+            }
+        });
     });
 
     updateRamosDisplay(); // Cargar el estado inicial de la malla
@@ -122,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Lógica de Modal de Calificaciones ---
     const gradeModal = document.getElementById('gradeModal');
     const closeModalButton = document.querySelector('.close-button');
-    const openGradeModalRamos = document.querySelectorAll('.open-grade-modal'); // Ramos que abren la modal
+    // const openGradeModalRamos = document.querySelectorAll('.open-grade-modal'); // Ya no se usa directamente aquí
 
     const modalRamoTitle = document.getElementById('modalRamoTitle');
     const controlsContainer = document.getElementById('controlsContainer');
@@ -180,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
             controlsWeight: 0.60,
             wimsWeight: 0.10
         },
-        'introduccion-fisica-clasica': { // Nueva configuración para Física Clásica
+        'introduccion-fisica-clasica': { // Configuración para Física Clásica (3 controles + 1 ejercicios)
             minApproval: 3.95, // >= 3.95 para aprobar
             minEximicion: 5.45, // >= 5.45 para eximir
             evaluations: [
@@ -191,6 +230,77 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             examenWeight: 0.40,
             controlsWeight: 0.60, // Ponderación de (Controles + Ejercicios)
+        },
+        // --- Ramos con 3 Controles y Examen (sin WIMS) ---
+        'algebra-lineal': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
+        },
+        'calculo-diferencial-integral': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
+        },
+        'introduccion-fisica-moderna': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
+        },
+        'introduccion-programacion': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
+        },
+        'calculo-varias-variables': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
+        },
+        'ecuaciones-diferenciales-ordinarias': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
+        },
+        'mecanica': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
+        },
+        'metodos-experimentales': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
+        },
+        'quimica': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
+        },
+        'economia': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
+        },
+        'calculo-avanzado-aplicaciones': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
+        },
+        'electromagnetismo': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
+        },
+        'modulo-interdisciplinario': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
+        },
+        'termodinamica': {
+            minApproval: 3.95, minEximicion: 5.45,
+            evaluations: [{ name: 'Control 1', type: 'control' }, { name: 'Control 2', type: 'control' }, { name: 'Control 3', type: 'control' }],
+            examenWeight: 0.40, controlsWeight: 0.60
         }
     };
 
@@ -238,14 +348,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Lógica para ocultar/mostrar WIMS visualmente
-        const isFisicaClasica = (ramoId === 'introduccion-fisica-clasica');
+        const hasWims = ramoConfig.hasOwnProperty('wimsWeight');
         const wimsSection = wimsGradeInput.parentElement;
         
-        if (isFisicaClasica) {
-            wimsSection.style.display = 'none'; // Oculta la sección de WIMS
+        if (!hasWims) {
+            wimsSection.style.display = 'none'; // Oculta la sección de WIMS si el ramo no tiene wimsWeight
             wimsGradeInput.value = ''; // Limpia el valor por si acaso
         } else {
-            wimsSection.style.display = 'block'; // Asegura que se muestra para otros ramos
+            wimsSection.style.display = 'block'; // Asegura que se muestra para ramos con WIMS
             if (savedGrades.wims) {
                 wimsGradeInput.value = savedGrades.wims;
             } else {
@@ -254,14 +364,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Lógica para ocultar/mostrar los resultados de notas finales
-        if (isFisicaClasica) {
-            finalGradeCombinedContainer.style.display = 'block'; // Mostrar solo la nota final genérica para Física Clásica
-            finalGradeNoWimsContainer.style.display = 'none';   // Ocultar "sin WIMS"
-            finalGradeWimsContainer.style.display = 'none';     // Ocultar "con WIMS"
-        } else {
-            finalGradeCombinedContainer.style.display = 'block'; // Asegura que se muestra también en otros ramos
-            finalGradeNoWimsContainer.style.display = 'block'; // Mostrar "sin WIMS"
-            finalGradeWimsContainer.style.display = 'block';   // Mostrar "con WIMS"
+        if (!hasWims) { // Si el ramo no tiene WIMS, solo mostrar la nota final genérica
+            finalGradeCombinedContainer.style.display = 'block';
+            finalGradeNoWimsContainer.style.display = 'none';
+            finalGradeWimsContainer.style.display = 'none';
+        } else { // Si el ramo tiene WIMS, mostrar las dos versiones (con/sin WIMS)
+            finalGradeCombinedContainer.style.display = 'none';
+            finalGradeNoWimsContainer.style.display = 'block';
+            finalGradeWimsContainer.style.display = 'block';
         }
 
 
@@ -289,16 +399,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Añadir listeners a los ramos que abren la modal
-    openGradeModalRamos.forEach(ramo => {
-        ramo.addEventListener('click', (event) => {
-            event.stopPropagation(); // Evitar que el click se propague a otros listeners del ramo
-            if (!ramo.classList.contains('bloqueado')) {
-                 openGradeModal(ramo.dataset.id);
-            }
-        });
-    });
-
     // Función principal para calcular notas, ahora se llama SÓLO al hacer clic en el botón
     calculateGradesButton.addEventListener('click', calculateGrades);
 
@@ -308,7 +408,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const ramoConfig = ramoGradeConfigs[currentRamoId];
         const grades = {};
         let averageForEximicion = null; // Promedio para decidir eximición (controles o controles+ejercicios)
-        let totalEvaluations = ramoConfig.evaluations.length;
         let validEvaluationCount = 0;
 
         let sumControls = 0;
@@ -337,9 +436,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Solo obtener y guardar WIMS si el ramo no es Física Clásica
+        // Solo obtener y guardar WIMS si el ramo tiene wimsWeight en su configuración
         let wimsGrade = NaN; // Inicializar wimsGrade como NaN por defecto
-        if (currentRamoId !== 'introduccion-fisica-clasica') {
+        if (ramoConfig.hasOwnProperty('wimsWeight')) {
             wimsGrade = parseFloat(wimsGradeInput.value);
             if (!isNaN(wimsGrade) && wimsGrade >= 1.0 && wimsGrade <= 7.0) {
                 grades.wims = wimsGrade;
@@ -347,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 grades.wims = '';
             }
         } else {
-            grades.wims = ''; // Asegura que no se guarde WIMS para Física Clásica
+            grades.wims = ''; // Asegura que no se guarde WIMS para ramos sin wimsWeight
         }
 
         const examenGrade = parseFloat(examenGradeInput.value);
@@ -358,24 +457,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- Calcular promedio de evaluaciones según el ramo ---
+        const expectedControls = ramoConfig.evaluations.filter(e => e.type === 'control').length;
+        const expectedEjercicios = ramoConfig.evaluations.filter(e => e.type === 'ejercicios').length;
+
         if (currentRamoId === 'introduccion-fisica-clasica') {
             // Para Física Clásica, el promedio de eximición es (Controles + Ejercicios)
-            if (validControlsCount === 3 && validEjerciciosCount === 1) { // 3 Controles y 1 Ejercicios
-                averageForEximicion = roundToNearestDecimal((sumControls + sumEjercicios) / 4); // Promedio de los 4 elementos
+            if (validControlsCount === expectedControls && validEjerciciosCount === expectedEjercicios) {
+                averageForEximicion = roundToNearestDecimal((sumControls + sumEjercicios) / (expectedControls + expectedEjercicios));
             } else {
                 averageForEximicion = null;
             }
-            // Actualizar el texto del promedio de controles para reflejar "Controles + Ejercicios"
+            avgControlsSpan.textContent = averageForEximicion !== null ? averageForEximicion.toFixed(1) : 'N/A';
+        } else if (expectedControls === 3 && expectedEjercicios === 0) { // Ramos con solo 3 controles
+            if (validControlsCount === 3) {
+                averageForEximicion = roundToNearestDecimal(sumControls / 3);
+            } else {
+                averageForEximicion = null;
+            }
+            avgControlsSpan.textContent = averageForEximicion !== null ? averageForEximicion.toFixed(1) : 'N/A';
+        } else if (expectedControls === 6 && expectedEjercicios === 0) { // Ramos con 6 controles (Cálculo, Álgebra)
+            if (validControlsCount === 6) {
+                averageForEximicion = roundToNearestDecimal(sumControls / 6);
+            } else {
+                averageForEximicion = null;
+            }
             avgControlsSpan.textContent = averageForEximicion !== null ? averageForEximicion.toFixed(1) : 'N/A';
         } else {
-            // Para Cálculo y Álgebra, el promedio de eximición es solo el promedio de controles (6 controles)
-            if (validControlsCount === 6) {
-                averageForEximicion = roundToNearestDecimal(sumControls / validControlsCount);
+             // Fallback genérico si hay otra configuración no esperada
+            if (validEvaluationCount === ramoConfig.evaluations.length) {
+                averageForEximicion = roundToNearestDecimal(sumControls / validControlsCount); // Asume solo controles si no hay ejercicios
             } else {
                 averageForEximicion = null;
             }
             avgControlsSpan.textContent = averageForEximicion !== null ? averageForEximicion.toFixed(1) : 'N/A';
         }
+
 
         // --- Lógica de Cálculo Principal ---
         let finalGrade = null;
@@ -383,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
         examenNeededP.textContent = ''; // Limpiar mensaje previo
         wimsInfoP.textContent = ''; // Limpiar mensaje previo
 
-        // Contar el total de evaluaciones esperadas (3 controles + 1 ejercicios para Física Clásica, 6 controles para Cálculo/Álgebra)
+        // Contar el total de evaluaciones esperadas
         const expectedEvaluationsCount = ramoConfig.evaluations.length;
 
         if (averageForEximicion !== null && validEvaluationCount === expectedEvaluationsCount) {
@@ -420,34 +536,33 @@ document.addEventListener('DOMContentLoaded', () => {
              examenNeededP.textContent = `Faltan ${expectedEvaluationsCount - validEvaluationCount} evaluaciones para calcular promedio y estado final.`;
         }
 
-        // Aplicar lógica WIMS solo si el ramo no es "Introducción a la Física Clásica"
+        // Aplicar lógica WIMS solo si el ramo tiene wimsWeight en su configuración
         let finalGradeWithWims = finalGrade;
-        if (currentRamoId !== 'introduccion-fisica-clasica' && finalGrade !== null && !isNaN(wimsGrade) && wimsGrade >= ramoConfig.minApproval && finalGrade >= ramoConfig.minApproval) {
+        if (ramoConfig.hasOwnProperty('wimsWeight') && finalGrade !== null && !isNaN(wimsGrade) && wimsGrade >= ramoConfig.minApproval && finalGrade >= ramoConfig.minApproval) {
             // Si el ramo y WIMS están aprobados
             const ponderadoWims = roundToNearestDecimal((finalGrade * (1 - ramoConfig.wimsWeight)) + (wimsGrade * ramoConfig.wimsWeight));
             finalGradeWithWims = Math.max(finalGrade, ponderadoWims);
             if (finalGradeWithWims > finalGrade) {
                 wimsInfoP.textContent = `¡WIMS aplicado! Tu nota mejoró a ${finalGradeWithWims.toFixed(1)}.`;
             }
-        } else if (currentRamoId !== 'introduccion-fisica-clasica' && finalGrade !== null && !isNaN(wimsGrade)) {
+        } else if (ramoConfig.hasOwnProperty('wimsWeight') && finalGrade !== null && !isNaN(wimsGrade)) {
              if (wimsGrade < ramoConfig.minApproval && finalGrade >= ramoConfig.minApproval) {
                  wimsInfoP.textContent = `WIMS no aplica porque no lo tienes aprobado (requiere ${ramoConfig.minApproval.toFixed(1)}).`;
              } else if (wimsGrade >= ramoConfig.minApproval && finalGrade < ramoConfig.minApproval) {
                  wimsInfoP.textContent = `WIMS no aplica porque el ramo no está aprobado sin él (requiere ${ramoConfig.minApproval.toFixed(1)}).`;
              }
-        } else if (currentRamoId === 'introduccion-fisica-clasica' && !isNaN(wimsGrade) && wimsGrade !== '') {
-            // Mensaje específico para Física Clásica si se ingresó un WIMS
+        } else if (!ramoConfig.hasOwnProperty('wimsWeight') && !isNaN(wimsGrade) && wimsGrade !== '') {
+            // Mensaje específico para ramos sin WIMS si se ingresó un WIMS (aunque el input esté oculto)
             wimsInfoP.textContent = 'WIMS no aplica para este ramo.';
         } else {
             wimsInfoP.textContent = ''; // Limpia el mensaje si no hay WIMS o no aplica
         }
 
         // Asignar los valores a los spans de resultados
-        if (currentRamoId === 'introduccion-fisica-clasica') {
+        if (!ramoConfig.hasOwnProperty('wimsWeight')) { // Si el ramo no tiene WIMS
             finalGradeDisplaySpan.textContent = finalGrade !== null ? finalGrade.toFixed(1) : 'N/A';
-            // Los otros spans de WIMS ya están ocultos por el openGradeModal
-        } else {
-            finalGradeDisplaySpan.textContent = 'N/A'; // Se oculta esta linea cuando se usa WIMS
+        } else { // Si el ramo tiene WIMS
+            finalGradeDisplaySpan.textContent = 'N/A'; // Oculta esta línea cuando se usan los de WIMS
             finalGradeNoWimsSpan.textContent = finalGrade !== null ? finalGrade.toFixed(1) : 'N/A';
             finalGradeWimsSpan.textContent = finalGradeWithWims !== null && finalGradeWithWims !== finalGrade ? finalGradeWithWims.toFixed(1) : (finalGrade !== null ? finalGrade.toFixed(1) : 'N/A');
         }
