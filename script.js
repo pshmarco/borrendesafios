@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mallaTabButton.classList.add('active');
     }
     
-    // --- Lógica de Modal de Calificaciones (REVISADA) ---
+    // --- Lógica de Modal de Calificaciones ---
     const gradeModal = document.getElementById('gradeModal');
     const closeModalButton = document.querySelector('.close-button');
     const openGradeModalRamos = document.querySelectorAll('.open-grade-modal'); // Ramos que abren la modal
@@ -131,10 +131,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const calculateGradesButton = document.getElementById('calculateGrades');
 
     const avgControlsSpan = document.getElementById('avgControls');
-    const finalGradeNoWimsContainer = document.querySelector('#finalGradeNoWims').parentElement; // El <p> que contiene el span
-    const finalGradeWimsContainer = document.querySelector('#finalGradeWims').parentElement;     // El <p> que contiene el span
+    
+    // Elementos para la nota final genérica
+    const finalGradeCombinedContainer = document.getElementById('finalGradeCombinedContainer');
+    const finalGradeDisplaySpan = document.getElementById('finalGradeDisplay');
+
+    // Elementos para las notas finales con/sin WIMS (visibilidad controlada)
+    const finalGradeNoWimsContainer = document.getElementById('finalGradeNoWimsContainer'); 
+    const finalGradeWimsContainer = document.getElementById('finalGradeWimsContainer');
     const finalGradeNoWimsSpan = document.getElementById('finalGradeNoWims');
     const finalGradeWimsSpan = document.getElementById('finalGradeWims');
+
     const ramoStatusSpan = document.getElementById('ramoStatus');
     const examenNeededP = document.getElementById('examenNeeded');
     const wimsInfoP = document.getElementById('wimsInfo');
@@ -184,7 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             examenWeight: 0.40,
             controlsWeight: 0.60, // Ponderación de (Controles + Ejercicios)
-            // wimsWeight: 0.10 // Esto puede eliminarse, ya no se usa
         }
     };
 
@@ -207,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wimsGradeInput.value = '';
         examenGradeInput.value = '';
         avgControlsSpan.textContent = 'N/A';
+        finalGradeDisplaySpan.textContent = 'N/A'; // Limpiar el nuevo span
         finalGradeNoWimsSpan.textContent = 'N/A';
         finalGradeWimsSpan.textContent = 'N/A';
         ramoStatusSpan.textContent = 'N/A';
@@ -246,13 +253,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // Lógica para ocultar/mostrar los resultados de "Nota Final (sin WIMS)" y "Nota Final (con WIMS)"
+        // Lógica para ocultar/mostrar los resultados de notas finales
         if (isFisicaClasica) {
-            finalGradeNoWimsContainer.style.display = 'none'; // Oculta el <p> de "Nota Final (sin WIMS)"
-            finalGradeWimsContainer.style.display = 'none';   // Oculta el <p> de "Nota Final (con WIMS)"
+            finalGradeCombinedContainer.style.display = 'block'; // Mostrar solo la nota final genérica para Física Clásica
+            finalGradeNoWimsContainer.style.display = 'none';   // Ocultar "sin WIMS"
+            finalGradeWimsContainer.style.display = 'none';     // Ocultar "con WIMS"
         } else {
-            finalGradeNoWimsContainer.style.display = 'block'; // Asegura que se muestre para otros ramos
-            finalGradeWimsContainer.style.display = 'block';   // Asegura que se muestre para otros ramos
+            finalGradeCombinedContainer.style.display = 'block'; // Asegura que se muestra también en otros ramos
+            finalGradeNoWimsContainer.style.display = 'block'; // Mostrar "sin WIMS"
+            finalGradeWimsContainer.style.display = 'block';   // Mostrar "con WIMS"
         }
 
 
@@ -433,8 +442,16 @@ document.addEventListener('DOMContentLoaded', () => {
             wimsInfoP.textContent = ''; // Limpia el mensaje si no hay WIMS o no aplica
         }
 
-        finalGradeNoWimsSpan.textContent = finalGrade !== null ? finalGrade.toFixed(1) : 'N/A';
-        finalGradeWimsSpan.textContent = finalGradeWithWims !== null && finalGradeWithWims !== finalGrade ? finalGradeWithWims.toFixed(1) : (finalGrade !== null ? finalGrade.toFixed(1) : 'N/A');
+        // Asignar los valores a los spans de resultados
+        if (currentRamoId === 'introduccion-fisica-clasica') {
+            finalGradeDisplaySpan.textContent = finalGrade !== null ? finalGrade.toFixed(1) : 'N/A';
+            // Los otros spans de WIMS ya están ocultos por el openGradeModal
+        } else {
+            finalGradeDisplaySpan.textContent = 'N/A'; // Se oculta esta linea cuando se usa WIMS
+            finalGradeNoWimsSpan.textContent = finalGrade !== null ? finalGrade.toFixed(1) : 'N/A';
+            finalGradeWimsSpan.textContent = finalGradeWithWims !== null && finalGradeWithWims !== finalGrade ? finalGradeWithWims.toFixed(1) : (finalGrade !== null ? finalGrade.toFixed(1) : 'N/A');
+        }
+
 
         // Actualizar estado final basado en la nota final (posiblemente con WIMS)
         if (finalGradeWithWims !== null) {
