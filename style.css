@@ -1,98 +1,114 @@
+/* Base Styles */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; /* Fuente más seria */
     margin: 0;
-    padding: 20px;
-    background-color: #f4f7f6; /* Fondo suave */
+    padding: 0;
+    background: linear-gradient(to bottom right, #e0e7ee, #c8d3e2); /* Degradado sutil */
     color: #333;
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Asegura que el footer esté al final */
+    min-height: 100vh;
+    line-height: 1.6;
 }
 
 .main-container {
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: 1400px; /* Ancho máximo aumentado para semestres horizontales */
+    margin: 20px auto;
     background-color: #ffffff;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    flex-grow: 1; /* Permite que el contenedor principal crezca para empujar el footer */
+    padding: 30px 40px; /* Más padding */
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
+    flex-grow: 1;
+    border: 1px solid #e0e0e0;
 }
 
-h1 {
-    color: #2c3e50;
-    text-align: center;
+/* Header de la Página */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 30px;
-    font-size: 2em;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
 }
 
+.page-header h1 {
+    color: #2c3e50;
+    text-align: left; /* Alineado a la izquierda */
+    margin: 0;
+    font-size: 2.5em; /* Título más grande */
+    font-weight: 600;
+}
+
+.header-controls {
+    display: flex;
+    gap: 15px;
+}
+
+/* Título de Semestre */
 h2 {
     color: #34495e;
-    font-size: 1.5em;
+    font-size: 1.6em; /* Un poco más grande */
     margin-top: 25px;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #e0e0e0;
-    padding-bottom: 5px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #aebac7; /* Borde más definido */
+    padding-bottom: 8px;
+    text-align: center; /* Centrar títulos de semestre */
+    font-weight: 500;
 }
 
 h3 {
     color: #4a6572;
-    font-size: 1.2em;
+    font-size: 1.3em;
     margin-top: 20px;
     margin-bottom: 10px;
+    font-weight: 500;
 }
 
-.tab-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 25px;
-    gap: 15px; /* Espacio entre botones */
+/* Semestre Horizontal Layout */
+.semestre-container {
+    display: flex; /* Para poner los semestres en fila */
+    overflow-x: auto; /* Permite scroll horizontal */
+    padding-bottom: 20px; /* Espacio para la barra de scroll */
+    gap: 30px; /* Espacio entre semestres */
+    -webkit-overflow-scrolling: touch; /* Suaviza el scroll en iOS */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #aebac7 #e0e7ee; /* Firefox scrollbar color */
 }
 
-.tab-button {
-    background-color: #e0e0e0;
-    border: none;
-    padding: 12px 25px;
-    cursor: pointer;
-    font-size: 1em;
-    border-radius: 5px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    color: #555;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+/* Scrollbar para Webkit (Chrome, Safari) */
+.semestre-container::-webkit-scrollbar {
+    height: 10px;
 }
 
-.tab-button:hover {
-    background-color: #d0d0d0;
-    transform: translateY(-2px);
+.semestre-container::-webkit-scrollbar-track {
+    background: #e0e7ee;
+    border-radius: 10px;
 }
 
-.tab-button.active {
-    background-color: #2980b9;
-    color: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.semestre-container::-webkit-scrollbar-thumb {
+    background: #aebac7;
+    border-radius: 10px;
+    border: 2px solid #e0e7ee; /* Padding visual */
 }
 
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-.semestre-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-    margin-top: 30px;
+.semestre-container::-webkit-scrollbar-thumb:hover {
+    background: #8e9ca8;
 }
 
 .semestre {
+    flex: 0 0 320px; /* Ancho fijo para cada semestre */
     background-color: #fdfdfd;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #d4e0eb; /* Borde más formal */
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.semestre:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .ramos-list {
@@ -101,36 +117,41 @@ h3 {
     margin: 0;
 }
 
+/* Ramos General */
 .ramo {
-    background-color: #e6f7ff; /* Color base para ramos normales (un azul muy claro) */
-    border: 1px solid #b3e0ff; /* Borde más suave */
-    padding: 12px 15px;
-    margin-bottom: 8px;
-    border-radius: 6px;
+    background-color: #f0f5f8; /* Un azul grisáceo claro y serio */
+    border: 1px solid #d0dbe4;
+    padding: 14px 18px; /* Más padding */
+    margin-bottom: 10px;
+    border-radius: 8px; /* Bordes más suaves */
     cursor: pointer;
     transition: all 0.3s ease;
-    display: flex; /* Para la línea tachada */
-    align-items: center; /* Para alinear el texto con la línea */
-    position: relative; /* Necesario para la línea tachada */
-    overflow: hidden; /* Asegura que la línea no sobresalga */
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    color: #444; /* Color de texto más oscuro */
+    font-size: 0.95em;
 }
 
-/* Color para ramos que abren modal (notas) */
+/* Ramos con Modal de Notas */
 .ramo.open-grade-modal {
-    background-color: #cff1ef; /* Color deseado: un turquesa muy suave */
-    border-color: #a0e6e2; /* Un borde un poco más oscuro para el color nuevo */
+    background-color: #e0f2f1; /* Un tono turquesa muy suave y elegante */
+    border-color: #a7d9d5; /* Borde que complementa */
+    color: #3d5c5a; /* Texto más oscuro */
 }
 
 .ramo:hover:not(.bloqueado) {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px); /* Efecto hover más pronunciado */
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); /* Sombra más fuerte */
 }
 
+/* Ramo Aprobado */
 .ramo.aprobado {
-    background-color: #d4edda; /* Verde suave para aprobado */
-    border-color: #28a745;
-    color: #155724;
-    text-decoration: none; /* Asegura que no tenga decoración por defecto */
+    background-color: #e6ffe6; /* Verde aún más suave */
+    border-color: #66bb6a; /* Verde más vivo */
+    color: #2e7d32;
+    text-decoration: none;
     position: relative;
 }
 
@@ -138,231 +159,236 @@ h3 {
     content: '';
     position: absolute;
     top: 50%;
-    left: -10%; /* Inicia un poco fuera del borde */
-    width: 120%; /* Cruza todo el elemento */
-    height: 3px; /* Línea más gruesa */
-    background-color: #dc3545; /* Rojo para la línea tachada */
-    transform: translateY(-50%) rotate(-5deg); /* Ligera inclinación */
+    left: -10%;
+    width: 120%;
+    height: 4px; /* Línea tachada más gruesa */
+    background-color: #c62828; /* Rojo más oscuro para la línea */
+    transform: translateY(-50%) rotate(-5deg);
     transition: all 0.3s ease;
     opacity: 0.9;
 }
 
-
+/* Ramo Bloqueado */
 .ramo.bloqueado {
-    background-color: #f8d7da; /* Rojo claro para bloqueado */
-    border-color: #dc3545;
-    color: #721c24;
+    background-color: #ffebee; /* Rojo muy pálido */
+    border-color: #ef9a9a; /* Rojo un poco más oscuro */
+    color: #c62828; /* Rojo más fuerte */
     cursor: not-allowed;
-    opacity: 0.7;
+    opacity: 0.8; /* Menos opacidad */
+    pointer-events: none; /* Deshabilita clics completamente */
 }
 
 .ramo.bloqueado:hover {
-    transform: none; /* No animar si está bloqueado */
+    transform: none;
     box-shadow: none;
 }
 
 
 /* Modal Styles */
 .modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
+    display: none;
+    position: fixed;
+    z-index: 1000;
     left: 0;
     top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-    padding: 20px; /* Padding around the modal */
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.7); /* Fondo de modal más oscuro */
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
 }
 
 .modal-content {
     background-color: #fefefe;
-    margin: auto;
-    padding: 30px;
-    border: 1px solid #888;
-    border-radius: 10px;
-    width: 90%; /* Adjust width for responsiveness */
-    max-width: 600px; /* Maximum width */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+    padding: 35px; /* Más padding */
+    border: 1px solid #ccc;
+    border-radius: 12px; /* Bordes más redondeados */
+    width: 90%;
+    max-width: 650px; /* Ancho máximo un poco mayor */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Sombra más profunda */
     position: relative;
     animation: fadeIn 0.3s ease-out;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 .close-button {
-    color: #aaa;
+    color: #888;
     float: right;
-    font-size: 32px;
+    font-size: 36px; /* Más grande */
     font-weight: bold;
     position: absolute;
-    top: 10px;
-    right: 20px;
+    top: 15px;
+    right: 25px;
     cursor: pointer;
+    transition: color 0.2s ease;
 }
 
 .close-button:hover,
 .close-button:focus {
-    color: #333;
+    color: #555;
     text-decoration: none;
-    cursor: pointer;
 }
 
 .grade-inputs, .grade-results {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px dashed #eee;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px dashed #e0e0e0; /* Borde más suave */
 }
 
 .grade-inputs h3, .grade-results h3 {
-    color: #2980b9;
-    margin-bottom: 15px;
+    color: #1a5276; /* Azul más oscuro para títulos de modal */
+    margin-bottom: 20px;
+    font-size: 1.4em;
+    border-bottom: 1px solid #eef; /* Subrayado ligero */
+    padding-bottom: 5px;
 }
 
-.control-input, .examen-section {
+.control-input, .examen-section, .wims-section { /* Aplica a todos los grupos de input */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 15px; /* Más espacio entre campos */
 }
 
 .control-input label, .examen-section label, .wims-section label {
-    flex: 1; /* Permite que el label ocupe espacio y empuje el input */
-    margin-right: 15px;
-    color: #555;
-    font-weight: bold;
+    flex: 1;
+    margin-right: 20px; /* Más margen */
+    color: #444;
+    font-weight: 600; /* Más negrita */
+    font-size: 1.05em;
 }
 
 .control-input input, .examen-section input, .wims-section input {
-    flex: 0 0 80px; /* Fija un ancho para los inputs numéricos */
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    text-align: right; /* Alinea el texto a la derecha dentro del input */
-    font-size: 1em;
+    flex: 0 0 90px; /* Ancho fijo ligeramente mayor */
+    padding: 10px;
+    border: 1px solid #aebac7; /* Borde más fuerte */
+    border-radius: 6px;
+    text-align: right;
+    font-size: 1.1em; /* Texto más grande en input */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.wims-section {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+.control-input input:focus, .examen-section input:focus, .wims-section input:focus {
+    border-color: #2c3e50;
+    box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.2); /* Sombra al enfocar */
+    outline: none;
 }
 
-.wims-section label {
-    flex-grow: 1; /* Permite que el label ocupe el espacio restante */
-}
 
 #calculateGrades {
-    background-color: #28a745;
+    background-color: #27ae60; /* Verde más oscuro */
     color: white;
     border: none;
-    padding: 12px 25px;
-    border-radius: 5px;
+    padding: 14px 30px; /* Más padding */
+    border-radius: 8px; /* Bordes más redondeados */
     cursor: pointer;
-    font-size: 1.1em;
-    margin-top: 20px;
+    font-size: 1.2em; /* Texto más grande */
+    margin-top: 25px;
     width: 100%;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 #calculateGrades:hover {
-    background-color: #218838;
+    background-color: #229a54;
+    transform: translateY(-2px);
 }
 
 .grade-results p {
-    margin-bottom: 8px;
-    font-size: 1.1em;
-    color: #444;
+    margin-bottom: 10px; /* Más espacio */
+    font-size: 1.15em; /* Texto más grande */
+    color: #333;
 }
 
 .grade-results span {
     font-weight: bold;
-    color: #000;
+    color: #1a5276; /* Color más serio para resultados */
 }
 
 .info-message {
-    font-size: 0.9em;
+    font-size: 0.95em;
     color: #666;
-    margin-top: 5px;
+    margin-top: 8px;
+    padding-left: 5px;
+    border-left: 3px solid #ccc;
 }
 
 /* Resumen Avance */
 .resumen-avance {
-    background-color: #e9f5f9;
-    border: 1px solid #cce7f4;
-    border-radius: 8px;
-    padding: 20px;
-    margin-top: 40px;
+    background-color: #f5f8fa; /* Fondo más neutro */
+    border: 1px solid #dbe2e8;
+    border-radius: 10px;
+    padding: 25px;
+    margin-top: 50px; /* Más margen superior */
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.resumen-avance h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.5em;
 }
 
 .resumen-avance p {
-    font-size: 1.1em;
-    margin-bottom: 8px;
+    font-size: 1.2em; /* Texto más grande */
+    margin-bottom: 10px;
 }
 
 .resumen-avance span {
-    font-weight: bold;
-    color: #2980b9;
+    font-weight: 700; /* Más negrita */
+    color: #1a5276; /* Azul oscuro y serio */
 }
 
 /* Footer Styles */
 footer {
-    text-align: center; /* Centra el contenido del footer */
-    margin-top: 40px;
-    padding: 15px;
-    background-color: #f0f3f2;
-    color: #666;
+    text-align: center;
+    margin-top: 50px; /* Más espacio sobre el footer */
+    padding: 20px;
+    background-color: #2c3e50; /* Fondo oscuro y sólido */
+    color: #e0e7ee; /* Texto claro */
     font-size: 0.9em;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid #1a252f;
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
 }
 
-footer p:last-child {
-    font-size: 0.7em; /* "borren desafíos" más pequeño */
-    margin-top: 5px;
+footer p {
+    margin: 5px 0;
 }
 
-/* Toggle Button Styling (Modo Tachar) */
+.small-text {
+    font-size: 0.75em; /* Ligeramente más grande que 0.7em */
+    opacity: 0.8; /* Un poco menos visible */
+}
+
+/* Toggle Button Styling (Modo Edición) */
 #toggleTacharMode {
-    background-color: #6c757d; /* Gris para desactivado */
+    background-color: #7f8c8d; /* Gris para desactivado */
     color: white;
-    padding: 10px 20px;
+    padding: 12px 25px; /* Más padding */
     border: none;
-    border-radius: 20px; /* Bordes más redondeados */
+    border-radius: 25px; /* Más redondeado */
     cursor: pointer;
-    font-size: 0.95em;
+    font-size: 1em;
     transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-    outline: none; /* Elimina el contorno al hacer clic */
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    outline: none;
+    font-weight: 500;
+    letter-spacing: 0.5px;
 }
 
 #toggleTacharMode.active-mode {
-    background-color: #28a745; /* Verde para activado */
-    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    background-color: #2980b9; /* Azul más oscuro para activado */
+    box-shadow: 0 5px 12px rgba(41, 128, 185, 0.3);
 }
 
 #toggleTacharMode:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
 }
 
 #toggleTacharMode.active-mode:hover {
-    background-color: #218838;
-    box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
-}
-
-/* Alineación para input WIMS */
-/* Asegura que el input WIMS se alinee a la derecha */
-.wims-section {
-    display: flex;
-    justify-content: space-between; /* Empuja label a izq, input a der */
-    align-items: center;
-    margin-bottom: 10px;
+    background-color: #2471a3;
+    box-shadow: 0 8px 18px rgba(41, 128, 185, 0.4);
 }
