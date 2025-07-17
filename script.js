@@ -322,6 +322,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.round(num * 10) / 10;
     }
 
+    // NUEVA FUNCIÓN: Redondea hacia arriba al decimal más cercano
+    function roundUpToNextTenth(num) {
+        return Math.ceil(num * 10) / 10;
+    }
+
     // Abre la modal con los datos del ramo seleccionado
     function openGradeModal(ramoId) {
         currentRamoId = ramoId;
@@ -392,6 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         gradeModal.style.display = 'flex'; // Muestra la modal
+        calculateGrades(); // <--- NUEVO: Calcula las notas automáticamente al abrir la modal
     }
 
     // Cierra la modal
@@ -512,7 +518,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     finalGrade = roundToNearestDecimal((averageForEximicion * ramoConfig.controlsWeight) + (examenGrade * ramoConfig.examenWeight));
                 } else {
                     const desiredFinal = ramoConfig.minApproval;
-                    const neededExamen = roundToNearestDecimal((desiredFinal - (averageForEximicion * ramoConfig.controlsWeight)) / ramoConfig.examenWeight);
+                    // MODIFICACIÓN: Usa roundUpToNextTenth para neededExamen
+                    const neededExamen = roundUpToNextTenth((desiredFinal - (averageForEximicion * ramoConfig.controlsWeight)) / ramoConfig.examenWeight);
                     if (neededExamen <= 7.0 && neededExamen >= 1.0) {
                         examenNeededP.textContent = `Necesitas un ${neededExamen.toFixed(1)} en el examen para aprobar.`;
                     } else if (neededExamen < 1.0) {
@@ -533,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const ponderadoWims = roundToNearestDecimal((finalGrade * (1 - ramoConfig.wimsWeight)) + (wimsGrade * ramoConfig.wimsWeight));
             finalGradeWithWims = Math.max(finalGrade, ponderadoWims);
             if (finalGradeWithWims > finalGrade) {
-                wimsInfoP.textContent = `¡WIMS aplicado! Tu nota mejoró a ${finalGradeWithWims.toFixed(1)}.`;
+                wimsInfoP.textContent = `Tu nota mejoró a ${finalGradeWithWims.toFixed(1)}.`; 
             }
         } else if (ramoConfig.hasOwnProperty('wimsWeight') && finalGrade !== null && !isNaN(wimsGrade)) {
              if (wimsGrade < ramoConfig.minApproval && finalGrade >= ramoConfig.minApproval) {
